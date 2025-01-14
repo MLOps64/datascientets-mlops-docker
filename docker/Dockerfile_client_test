@@ -1,0 +1,15 @@
+FROM ubuntu:18.04
+
+RUN apt-get update && apt-get install python3-pip -y && pip3 install request==2.32.3
+
+USER ubuntu
+
+WORKDIR /home/ubuntu/sentiments_analysis/
+
+ADD ../sentiment_api_tests/tests_api_sentiments.py /home/ubuntu/sentiments_analysis/
+
+VOLUME /home/ubuntu/sentiments_analysis/log/
+
+CMD ["tests_api_sentiments.py"]
+
+ENTRYPOINT ["python3"]
