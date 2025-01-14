@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 """
     Objet  : Script python de test de l'API sentiment : datascientest/fastapi:1.0.0
     Auteur : <e.papet64@gmail.com>
@@ -11,7 +12,7 @@ import requests
      ./v2/sentiment
 """
 
-file_log = './api_test.log'
+file_log = '/home/ubuntu/workspace/sprint1/docker/exam_PAPET/api_test.log'
 api_address = 'localhost'
 api_port = 8000
 
@@ -36,13 +37,11 @@ def perform_request(method,protocol,address,port,action,test_params):
         raise ex
     
 
-        
-
-def test_authentification(test_params):
+def test_authentification(action,test_params):
     test_status = 'SUCCESS'
     print("Lancement du test d'authentification ...")
     try:
-        res = perform_request('GET','http',api_address,api_port,"/permissions",test_params)
+        res = perform_request('GET','http',api_address,api_port,action,test_params)
     except Exception as e:
         raise e
     #
@@ -61,16 +60,100 @@ request done at {action}
 expected result = 200
 actual restult = {status_code}
 
-==>  {test_status}
+==>  HTTP status {test_status}:{status_code}
 
-'''.format(status_code=status_code,test_status=test_status,username=test_params['username'], password=test_params['password'],action='/permission')
+'''.format(status_code=status_code,test_status=test_status,username=test_params['username'], password=test_params['password'],action=action)
     return output
 
-def test_authorzaition():
+def test_authorization(action,test_params):
+    test_status = 'SUCCESS'
+    test_auth = 'Authorise'
+    score = None
     print("Lancement du test d'authorization ...")
+    #print(test_params)
+    try:
+        res = perform_request('GET','http',api_address,api_port,action,test_params)
+    except Exception as e:
+        raise e
+    #
+    #print(json.loads(res.content)['score'])
+    try:
+        score = json.loads(res.content)['score']
+    except Exception as e :
+        score = 'Not Authorize'
+    #
+    status_code = res.status_code
+    #
+    if not status_code == int(test_params['code_expected']):
+        test_status = 'FAILURE'
+        test_auth = 'Not Authorize'
+    output = '''
+============================
+    Authorization test
+============================
 
-def test_content():
-    print("Lancement du test de content ...")
+request done at {action}
+| username = {username}
+| password = {password}
+| sentence = {sentence}
+| score    = {score}
+
+
+expected result = {code_expected}
+actual restult = {status_code}
+
+==>  HTTP Status : {test_status}:{status_code} / Authorisation : {test_auth}
+'''.format(status_code=status_code,test_status=test_status,username=test_params['username'], password=test_params['password'],sentence=test_params['sentence'],test_auth=test_auth,code_expected=test_params['code_expected'],action=action,score=score)
+    return output
+    
+
+def test_content(action,test_params):
+    test_status = 'SUCCESS'
+    test_auth = 'Authorise'
+    score = None
+    test_score = 'FAILURE'
+    print("Lancement du test Content ...")
+    #print(test_params)
+    try:
+        res = perform_request('GET','http',api_address,api_port,action,test_params)
+    except Exception as e:
+        raise e
+    #
+    #print(json.loads(res.content)['score'])
+    try:
+        score = json.loads(res.content)['score']
+    except Exception as e :
+        pass
+    #
+    status_code = res.status_code
+    #
+    if (score is not None and test_params['test_score'] == '>' and score > 0) or (score is not None and test_params['test_score'] == '<' and score < 0):
+        test_score = 'SUCCESS'
+
+    #
+    if not status_code == int(test_params['code_expected']):
+        test_status = 'FAILURE'
+        test_auth = 'Not Authorize'
+    output = '''
+============================
+    Content test
+============================
+
+request done at {action}
+| username      = {username}
+| password      = {password}
+| sentence      = {sentence}
+| score         = {score}
+| test score    = {test_score}
+
+
+expected result = {code_expected}
+actual restult = {status_code}
+
+==>  HTTP Status : {test_status}:{status_code} / Authorisation : {test_auth}
+
+'''.format(status_code=status_code,test_status=test_status,username=test_params['username'], password=test_params['password'],sentence=test_params['sentence'],test_auth=test_auth,code_expected=test_params['code_expected'],test_score=test_score,action=action,score=score)
+    return output
 
 # main
 if __name__ == "__main__":  
@@ -85,7 +168,8 @@ if __name__ == "__main__":
     if log is not None and log == '1':
         try:
             os.remove(file_log)
-            print("LOG -> {}, remove {}".format(log,file_log))
+            os.mknod(file_log) 
+            print("LOG -> {}, create new {}".format(log,file_log))
         except  OSError as e:
             print("Remove {} Error: {}".format(file_log,e))
     else:
@@ -108,22 +192,86 @@ if __name__ == "__main__":
     }
     # TEST 1.1
     try:
-        output = test_authentification(test_params_alice_auth_ok)
+        output = test_authentification('/permissions',test_params_alice_auth_ok)
         if int(log) == 1:
             write_log(output)
     except Exception as e:
         print(" Error authentification: {}".format(e))
     # TEST 1.2
     try:
-        output = test_authentification(test_params_bob_auth_ok)
+        output = test_authentification('/permissions',test_params_bob_auth_ok)
         if int(log) == 1:
             write_log(output)
     except Exception as e:
         print(" Error authentification: {}".format(e))
     # TEST 1.3
     try:
-        output = test_authentification(test_params_auth_ko)
+        output = test_authentification('/permissions',test_params_auth_ko)
         if int(log) == 1:
             write_log(output)
     except Exception as e:
         print(" Error authentification: {}".format(e))
+
+    # TEST 2.1
+    try:
+        test_params_alice_auth_ok['sentence'] = 'life is beautiful'
+        test_params_alice_auth_ok['code_expected'] = 200
+        output = test_authorization('/v1/sentiment',test_params_alice_auth_ok)
+        if int(log) == 1:
+            write_log(output)
+    except Exception as e:
+        print(" Error authentification: {}".format(e))
+        
+    # TEST 2.2
+    try:
+        test_params_alice_auth_ok['sentence'] = 'life is beautiful'
+        test_params_alice_auth_ok['code_expected'] = 200
+        output = test_authorization('/v2/sentiment',test_params_alice_auth_ok)
+        if int(log) == 1:
+            write_log(output)
+    except Exception as e:
+        print(" Error authentification: {}".format(e))
+
+    # TEST 2.3
+    try:
+        test_params_bob_auth_ok['sentence'] = 'life is beautiful'
+        test_params_bob_auth_ok['code_expected'] = 200
+        output = test_authorization('/v1/sentiment',test_params_bob_auth_ok)
+        if int(log) == 1:
+            write_log(output)
+    except Exception as e:
+        print(" Error authentification: {}".format(e))
+
+    # TEST 2.4
+    try:
+        test_params_bob_auth_ok['sentence'] = 'life is beautiful'
+        test_params_bob_auth_ok['code_expected'] = 200
+        output = test_authorization('/v2/sentiment',test_params_bob_auth_ok)
+        if int(log) == 1:
+            write_log(output)
+    except Exception as e:
+        print(" Error authentification: {}".format(e))
+
+
+    # TEST 3.1
+    try:
+        test_params_bob_auth_ok['sentence'] = 'life is beautiful'
+        test_params_bob_auth_ok['code_expected'] = 200
+        test_params_bob_auth_ok['test_score'] = '>'
+        output = test_content('/v1/sentiment',test_params_bob_auth_ok)
+        if int(log) == 1:
+            write_log(output)
+    except Exception as e:
+        print(" Error authentification: {}".format(e))
+
+    # TEST 3.2
+    try:
+        test_params_bob_auth_ok['sentence'] = 'that sucks'
+        test_params_bob_auth_ok['code_expected'] = 200
+        test_params_bob_auth_ok['test_score'] = '<'
+        output = test_content('/v1/sentiment',test_params_bob_auth_ok)
+        if int(log) == 1:
+            write_log(output)
+    except Exception as e:
+        print(" Error authentification: {}".format(e))
+
