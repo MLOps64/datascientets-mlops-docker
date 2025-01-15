@@ -25,8 +25,10 @@ api_port = 8000
 def write_log(message):
     try:
         #if os.environ.get('LOG') == 1:
+        print(file_log)
         with open(file_log, 'a') as file:
             file.write(message)
+            file.close()
     except  Exception as ex:
         print("Error write_log Exception: {} ".format(ex))
         raise e
@@ -177,7 +179,7 @@ if __name__ == "__main__":
     # if LOG = 1 trace is write into api_test.log
     log = os.environ.get('LOG')
     file_log = os.environ.get('FILE_LOG')
-    # New test if exit file ./api_test.log delete it after.
+    # Is New test, if file api_test.log exist delete it after.
     if log is not None and log == '1':
         if file_log is None:
             file_log = default_log_path
@@ -185,14 +187,18 @@ if __name__ == "__main__":
             if os.path.isfile(file_log):
                 os.remove(file_log)
             os.mknod(file_log)
-            write_log(str(datetime.datetime.now()),)
+            write_log(str(datetime.datetime.now()))
         except  OSError as e:
             print("=> Remove {} Error: {}".format(file_log,e))
     else:
-        log='0'
-
+        log = '0'
+    # HOST and PORT
+    if os.environ.get('HOST') is not None:
+        api_address = os.environ.get('HOST')
+    if os.environ.get('PORT') is not None:
+        api_port = int(os.environ.get('PORT') )
     # print OS variable
-    print("=> LOG: {} / FILE_LOG: {} / ROUTING_TEST: {}".format(log,file_log,routing_test))    
+    print("=> HOST: {} / PORT: {} / LOG: {} / FILE_LOG: {} / ROUTING_TEST: {}".format(api_address,api_port,log,file_log,routing_test))    
 
     # Crendential
     test_params_alice_auth_ok =  {

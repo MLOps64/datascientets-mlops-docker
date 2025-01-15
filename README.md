@@ -96,3 +96,19 @@ python3 sentiment_api_tests/tests_api_sentiments.py
 (sentiment_api_tests) ubuntu@ip-172-31-37-170:~$export LOG=1
 (sentiment_api_tests) ubuntu@ip-172-31-37-170:~$ /usr/bin/python3 /home/ubuntu/workspace/sprint1/docker/exam_PAPET/sentiment_api_tests/tests_api_sentiments.py
 ```
+## DOCKER
+- installation de docker-compose
+```bash
+sudo apt update
+sudo apt install docker-compose
+# aprés reconnexion au shell
+docker-compose -version
+docker-compose version 1.28.2, build 67630359
+```
+- creation de l'image à partir du Dockerfile
+```bash
+ubuntu@ip-172-31-37-170:~/workspace/sprint1/docker/exam_PAPET/docker$ docker build . -t e.papet/test_sentiments_analysis:1.0.0
+ubuntu@ip-172-31-37-170:~/workspace/sprint1/docker/exam_PAPET/docker$ docker images -a | grep e.papet/test_sentiments_analysis
+    e.papet/test_sentiments_analysis   1.0.0     ec4ef5d8197c   23 minutes ago   453MB
+```
+- si l'on rebuild l'image il faut supprimer le volume "docker volume rm docker_volume_authentification" qui contient le python file
