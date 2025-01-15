@@ -1,5 +1,7 @@
 version: "3.9"
+
 services:
+
   test_authentification:
     #build:
     #context: .
@@ -14,6 +16,46 @@ services:
     environment:
       LOG: $LOG
       ROUTING_TEST: AUTHENTIFICATION
+      FILE_LOG: $FILE_LOG
+      HOST: $HOST
+      PORT: $PORT
+    depends_on:
+      - api_service
+
+  test_authorization:
+    #build:
+    #context: .
+    #dockerfile: Dockerfile
+    image: e.papet/test_sentiments_analysis:1.0.0
+    container_name: test_sentiment_authorization
+    networks:
+      - client_analysis
+      - service_analysis
+    volumes:
+      - volume_authorization:/app
+    environment:
+      LOG: $LOG
+      ROUTING_TEST: AUTHORIZATION
+      FILE_LOG: $FILE_LOG
+      HOST: $HOST
+      PORT: $PORT
+    depends_on:
+      - api_service
+
+  test_content:
+    #build:
+    #context: .
+    #dockerfile: Dockerfile
+    image: e.papet/test_sentiments_analysis:1.0.0
+    container_name: test_sentiment_content
+    networks:
+      - client_analysis
+      - service_analysis
+    volumes:
+      - volume_content:/app
+    environment:
+      LOG: $LOG
+      ROUTING_TEST: CONTENT
       FILE_LOG: $FILE_LOG
       HOST: $HOST
       PORT: $PORT
