@@ -56,12 +56,15 @@ if log is not None and log == '1':
             write_log(output)
     except Exception as e:
 ```
-- On utilise les variables d'environnement "LOG" pour activer l'écriture des logs et "ROUTING_TEST' pour separer les tests
-    - LOG=1 => activation
-    - ROUTING_TEST=AUTHENTIFICATION => execute les tests authentification
-    - ROUTING_TEST=AUTHORIZATION    => execute les tests authorisation
-    - ROUTING_TEST=CONTENT          => execute les tests content
-    - ROUTING_TEST=ALL or None      => execute tous les tests
+- On utilise les variables d'environnement:
+    - "LOG" pour activer l'écriture des logs
+    - "ROUTING_TEST' pour separer les tests
+    - "FILE_LOG" pour la localisation du fichier de log
+        - LOG=1 => activation
+        - ROUTING_TEST=AUTHENTIFICATION => execute les tests authentification
+        - ROUTING_TEST=AUTHORIZATION    => execute les tests authorisation
+        - ROUTING_TEST=CONTENT          => execute les tests content
+        - ROUTING_TEST=ALL or None      => execute tous les tests
 ```bash
 export ROUTING_TEST=AUTHENTIFICATION
 python3 sentiment_api_tests/tests_api_sentiments.py

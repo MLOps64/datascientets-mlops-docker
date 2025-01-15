@@ -15,7 +15,9 @@ import datetime
 """
 
 # GLOBAL Variable
-file_log = '/home/ubuntu/workspace/sprint1/docker/exam_PAPET/api_test.log'
+#file_log = '/home/ubuntu/workspace/sprint1/docker/exam_PAPET/log/api_test.log'
+file_log = None
+default_log_path = '/home/ubuntu/workspace/sprint1/docker/exam_PAPET/api_test.log'
 api_address = 'localhost'
 api_port = 8000
 
@@ -174,19 +176,23 @@ if __name__ == "__main__":
     
     # if LOG = 1 trace is write into api_test.log
     log = os.environ.get('LOG')
+    file_log = os.environ.get('FILE_LOG')
     # New test if exit file ./api_test.log delete it after.
     if log is not None and log == '1':
+        if file_log is None:
+            file_log = default_log_path
         try:
-            os.remove(file_log)
+            if os.path.isfile(file_log):
+                os.remove(file_log)
             os.mknod(file_log)
-            write_log(str(datetime.datetime.now()))
+            write_log(str(datetime.datetime.now()),)
         except  OSError as e:
-            print("Remove {} Error: {}".format(file_log,e))
+            print("=> Remove {} Error: {}".format(file_log,e))
     else:
         log='0'
 
     # print OS variable
-    print("LOG => {}, ROUTING_TEST => {}".format(log,routing_test))    
+    print("=> LOG: {} / FILE_LOG: {} / ROUTING_TEST: {}".format(log,file_log,routing_test))    
 
     # Crendential
     test_params_alice_auth_ok =  {
