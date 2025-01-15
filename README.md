@@ -56,7 +56,39 @@ if log is not None and log == '1':
             write_log(output)
     except Exception as e:
 ```
-- Pour la variable d'environnement "LOG", on l'initialise dans le shelle qui lance le python
+- On utilise les variables d'environnement "LOG" pour activer l'écriture des logs et "ROUTING_TEST' pour separer les tests
+    - LOG=1 => activation
+    - ROUTING_TEST=AUTHENTIFICATION => execute les tests authentification
+    - ROUTING_TEST=AUTHORIZATION    => execute les tests authorisation
+    - ROUTING_TEST=CONTENT          => execute les tests content
+    - ROUTING_TEST=ALL or None      => execute tous les tests
+```bash
+export ROUTING_TEST=AUTHENTIFICATION
+python3 sentiment_api_tests/tests_api_sentiments.py
+    LOG => 1, ROUTING_TEST => AUTHENTIFICATION
+    Lancement du test d'authentification ...
+```
+```bash
+export ROUTING_TEST=AUTHORIZATION
+python3 sentiment_api_tests/tests_api_sentiments.py
+    LOG => 1, ROUTING_TEST => AUTHORIZATION
+    Lancement du test d'authorization ...
+```
+```bash
+export ROUTING_TEST=CONTENT
+python3 sentiment_api_tests/tests_api_sentiments.py
+LOG => 1, ROUTING_TEST => CONTENT
+Lancement du test Content ...
+```
+```bash
+export  ROUTING_TEST=ALL # or not initialized (None)
+python3 sentiment_api_tests/tests_api_sentiments.py
+    LOG => 1, ROUTING_TEST => ALL
+    Lancement du test d'authentification ...
+    Lancement du test d'authorization ...
+    Lancement du test Content ...
+```
+- Pour la variable d'environnement "LOG", on l'initialise dans le shell qui lance le python
 ```bash
 (sentiment_api_tests) ubuntu@ip-172-31-37-170:~$export LOG=1
 (sentiment_api_tests) ubuntu@ip-172-31-37-170:~$ /usr/bin/python3 /home/ubuntu/workspace/sprint1/docker/exam_PAPET/sentiment_api_tests/tests_api_sentiments.py
