@@ -1,5 +1,7 @@
 #log
 ./api_test.log
+*/api_test*
+*/log*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

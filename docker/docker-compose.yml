@@ -12,7 +12,7 @@ services:
       - client_analysis
       - service_analysis
     volumes:
-      - volume_authentification:/app
+      - volume_data:/app
     environment:
       LOG: $LOG
       ROUTING_TEST: AUTHENTIFICATION
@@ -32,7 +32,7 @@ services:
       - client_analysis
       - service_analysis
     volumes:
-      - volume_authorization:/app
+      - volume_data:/app
     environment:
       LOG: $LOG
       ROUTING_TEST: AUTHORIZATION
@@ -41,6 +41,7 @@ services:
       PORT: $PORT
     depends_on:
       - api_service
+      - test_authentification
 
   test_content:
     #build:
@@ -52,7 +53,7 @@ services:
       - client_analysis
       - service_analysis
     volumes:
-      - volume_content:/app
+      - volume_data:/app
     environment:
       LOG: $LOG
       ROUTING_TEST: CONTENT
@@ -61,6 +62,7 @@ services:
       PORT: $PORT
     depends_on:
       - api_service
+      - test_authorization
 
   api_service:
     image: datascientest/fastapi:1.0.0
@@ -70,11 +72,14 @@ services:
       - service_analysis
 
 volumes:
-  volume_authentification: #driver: local
-  volume_authorization:
+  volume_data:
     driver: local
-  volume_content:
-    driver: local
+    #volume_authentification: 
+    #driver: local
+    #volume_authorization:
+    #  driver: local
+    #volume_content:
+    #  driver: local
 
 networks:
   client_analysis:

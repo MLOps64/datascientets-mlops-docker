@@ -25,6 +25,7 @@ api_port = 8000
 def write_log(message):
     try:
         #if os.environ.get('LOG') == 1:
+        #print(file_log)
         with open(file_log, 'a') as file:
             file.write(message)
             file.close()
@@ -53,7 +54,7 @@ def test_authentification(action,test_params):
         raise e
     #
     status_code = res.status_code
-    if not status_code == 200:
+    if not status_code == int(test_params['code_expected']):
         test_status = 'FAILURE'
     output = '''
 ============================
@@ -87,10 +88,11 @@ def test_authorization(action,test_params):
     try:
         score = json.loads(res.content)['score']
     except Exception as e :
-        score = 'Not Authorize'
+        #print("Extrat score ERROR: {}".format(str(e)))
+        pass
     #
     status_code = res.status_code
-    #
+    # TEST du code attendu
     if not status_code == int(test_params['code_expected']):
         test_status = 'FAILURE'
         test_auth = 'Not Authorize'
@@ -126,17 +128,18 @@ def test_content(action,test_params):
         raise e
     #
     #print(json.loads(res.content)['score'])
+    # Recuperation d'un dictionnaire
     try:
         score = json.loads(res.content)['score']
     except Exception as e :
+        print(" Extract score ERROR: {}".format(str(e)))
         pass
-    #
+    # Integer
     status_code = res.status_code
-    #
+    # Algorithme de test de validité de la variable "score"
     if (score is not None and test_params['test_score'] == '>' and score > 0) or (score is not None and test_params['test_score'] == '<' and score < 0):
         test_score = 'SUCCESS'
-
-    #
+    # Test du code attendu
     if not status_code == int(test_params['code_expected']):
         test_status = 'FAILURE'
         test_auth = 'Not Authorize'
@@ -150,7 +153,7 @@ request done at {action}
 | password      = {password}
 | sentence      = {sentence}
 | score         = {score}
-| test score    = {test_score}
+| test score    = {test_score} score is {operateur} 0
 
 
 expected result = {code_expected}
@@ -158,7 +161,7 @@ actual restult = {status_code}
 
 ==>  HTTP Status : {test_status}:{status_code} / Authorisation : {test_auth}
 
-'''.format(status_code=status_code,test_status=test_status,username=test_params['username'], password=test_params['password'],sentence=test_params['sentence'],test_auth=test_auth,code_expected=test_params['code_expected'],test_score=test_score,action=action,score=score)
+'''.format(status_code=status_code,test_status=test_status,username=test_params['username'], password=test_params['password'],sentence=test_params['sentence'],test_auth=test_auth,code_expected=test_params['code_expected'],test_score=test_score,action=action,score=score,operateur=test_params['test_score'])
     return output
 
 # main Function
@@ -168,13 +171,12 @@ if __name__ == "__main__":
         #print('{}: {}'.format(key, value))
 
     # Type of environement variable is STRING
-
     # if ROUTING_TEST == ['AUTHENTIFICATION' or 'AUTHORIZATION' or 'CONTENT' or 'ALL' ]
     routing_test = os.environ.get('ROUTING_TEST')
     # secure execution
     if routing_test is None or routing_test not in ('AUTHENTIFICATION', 'AUTHORIZATION', 'CONTENT', 'ALL'):
         routing_test = 'ALL'
-    
+    # If file_log exist don't delete it.
     # if LOG = 1 trace is write into api_test.log
     log = os.environ.get('LOG')
     file_log = os.environ.get('FILE_LOG')
@@ -183,10 +185,10 @@ if __name__ == "__main__":
         if file_log is None:
             file_log = default_log_path
         try:
-            if os.path.isfile(file_log):
-                os.remove(file_log)
-            os.mknod(file_log)
-            write_log(str(datetime.datetime.now()))
+            if not os.path.isfile(file_log):
+                os.mknod(file_log)
+            # Write new TEST
+            write_log("\n##### NEW TEST {} AT {} #####\n".format(routing_test,str(datetime.datetime.now())))
         except  OSError as e:
             print("=> Remove {} Error: {}".format(file_log,e))
     else:
@@ -220,6 +222,7 @@ if __name__ == "__main__":
         print("Lancement des tests d'authentification ...")
         # TEST 1.1
         try:
+            test_params_alice_auth_ok['code_expected'] = 200
             output = test_authentification('/permissions',test_params_alice_auth_ok)
             if int(log) == 1:
                 write_log(output)
@@ -227,6 +230,7 @@ if __name__ == "__main__":
             print(" Error authentification: {}".format(e))
         # TEST 1.2
         try:
+            test_params_bob_auth_ok['code_expected'] = 200
             output = test_authentification('/permissions',test_params_bob_auth_ok)
             if int(log) == 1:
                 write_log(output)
@@ -234,6 +238,7 @@ if __name__ == "__main__":
             print(" Error authentification: {}".format(e))
         # TEST 1.3
         try:
+            test_params_auth_ko['code_expected'] = 200
             output = test_authentification('/permissions',test_params_auth_ko)
             if int(log) == 1:
                 write_log(output)
@@ -251,7 +256,7 @@ if __name__ == "__main__":
             if int(log) == 1:
                 write_log(output)
         except Exception as e:
-            print(" Error authentification: {}".format(e))
+            print(" Error authorization: {}".format(e))
 
         # TEST 2.2
         try:
@@ -261,7 +266,7 @@ if __name__ == "__main__":
             if int(log) == 1:
                 write_log(output)
         except Exception as e:
-            print(" Error authentification: {}".format(e))
+            print(" Error authorization: {}".format(e))
 
         # TEST 2.3
         try:
@@ -271,7 +276,7 @@ if __name__ == "__main__":
             if int(log) == 1:
                 write_log(output)
         except Exception as e:
-            print(" Error authentification: {}".format(e))
+            print(" Error authorization: {}".format(e))
 
         # TEST 2.4
         try:
@@ -281,30 +286,53 @@ if __name__ == "__main__":
             if int(log) == 1:
                 write_log(output)
         except Exception as e:
-            print(" Error authentification: {}".format(e))
+            print(" Error authorization: {}".format(e))
 
     # CONTENT TEST
     if routing_test in ('CONTENT', 'ALL'):
         print("Lancement des tests de content ...")
         # TEST 3.1
         try:
-            test_params_bob_auth_ok['sentence'] = 'life is beautiful'
-            test_params_bob_auth_ok['code_expected'] = 200
-            test_params_bob_auth_ok['test_score'] = '>'
-            output = test_content('/v1/sentiment',test_params_bob_auth_ok)
+            test_params_alice_auth_ok['sentence'] = 'life is beautiful'
+            test_params_alice_auth_ok['code_expected'] = 200
+            test_params_alice_auth_ok['test_score'] = '>'
+            output = test_content('/v1/sentiment',test_params_alice_auth_ok)
             if int(log) == 1:
                 write_log(output)
         except Exception as e:
-            print(" Error authentification: {}".format(e))
+            print(" Error content: {}".format(e))
 
         # TEST 3.2
         try:
-            test_params_bob_auth_ok['sentence'] = 'that sucks'
-            test_params_bob_auth_ok['code_expected'] = 200
-            test_params_bob_auth_ok['test_score'] = '<'
-            output = test_content('/v1/sentiment',test_params_bob_auth_ok)
+            test_params_alice_auth_ok['sentence'] = 'that sucks'
+            test_params_alice_auth_ok['code_expected'] = 200
+            test_params_alice_auth_ok['test_score'] = '<'
+            output = test_content('/v1/sentiment',test_params_alice_auth_ok)
             if int(log) == 1:
                 write_log(output)
         except Exception as e:
-            print(" Error authentification: {}".format(e))
+            print(" Error content: {}".format(e))
+        
+        # TEST 3.3
+        try:
+            test_params_alice_auth_ok['sentence'] = 'life is beautiful'
+            test_params_alice_auth_ok['code_expected'] = 200
+            test_params_alice_auth_ok['test_score'] = '>'
+            output = test_content('/v2/sentiment',test_params_alice_auth_ok)
+            if int(log) == 1:
+                write_log(output)
+        except Exception as e:
+            print(" Error content: {}".format(e))
 
+        # TEST 3.4
+        try:
+            test_params_alice_auth_ok['sentence'] = 'that sucks'
+            test_params_alice_auth_ok['code_expected'] = 200
+            test_params_alice_auth_ok['test_score'] = '<'
+            output = test_content('/v2/sentiment',test_params_alice_auth_ok)
+            if int(log) == 1:
+                write_log(output)
+        except Exception as e:
+            print(" Error content: {}".format(e))
+    # Write end TEST
+    write_log("\n##### END TEST {} AT {} #####\n\n".format(routing_test,str(datetime.datetime.now())))
